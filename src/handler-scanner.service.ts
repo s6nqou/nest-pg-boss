@@ -4,7 +4,8 @@ import { Injectable as InjectableInterface } from "@nestjs/common/interfaces";
 import { InstanceWrapper } from "@nestjs/core/injector/instance-wrapper";
 import { PG_BOSS_JOB_METADATA } from "./pg-boss.constants";
 import { HandlerMetadata } from "./interfaces/handler-metadata.interface";
-import type { WorkHandler } from "pg-boss";
+import PGBoss from "pg-boss";
+import { ClassConstructor, plainToInstance } from "class-transformer";
 
 @Injectable()
 export class HandlerScannerService {
@@ -13,7 +14,7 @@ export class HandlerScannerService {
   constructor(
     private readonly metadataScanner: MetadataScanner,
     public readonly modulesContainer: ModulesContainer,
-  ) {}
+  ) { }
 
   public static exploreMethodMetadata(
     instancePrototype: InjectableInterface,
@@ -30,7 +31,7 @@ export class HandlerScannerService {
 
   getJobHandlers(): {
     metadata: HandlerMetadata;
-    callback: WorkHandler<unknown>;
+    callback: PGBoss.WorkHandler<unknown>;
   }[] {
     // See https://github.com/owl1n/nest-queue/blob/master/src/queue.provider.ts
     const modules = [...this.modulesContainer.values()];
@@ -56,9 +57,11 @@ export class HandlerScannerService {
               return null;
             }
 
-            const callback = (
-              instance as Record<typeof methodName, WorkHandler<unknown>>
+            const handler = (
+              instance as Record<typeof methodName, PGBoss.WorkHandler<unknown>>
             )[methodName].bind(instance);
+
+            const callback = wrapHandler(handler, metadata.transformer);
 
             return {
               metadata,
@@ -68,6 +71,16 @@ export class HandlerScannerService {
       })
       .filter(notEmpty);
   }
+}
+
+function wrapHandler<T>(handler: PGBoss.WorkHandler<T>, transformer?: ClassConstructor<T>): PGBoss.WorkHandler<T> {
+  if (transformer) {
+    return (job: PGBoss.Job<T>) => {
+      job.data = plainToInstance(transformer, job.data);
+      return handler(job);
+    };
+  }
+  return handler;
 }
 
 function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {

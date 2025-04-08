@@ -8,19 +8,32 @@ import * as PGBoss from "pg-boss";
 import { HandlerMetadata } from "./interfaces/handler-metadata.interface";
 import { PG_BOSS_JOB_METADATA } from "./pg-boss.constants";
 import { getJobToken } from "./utils";
+import { ClassConstructor, instanceToPlain, plainToClass, plainToInstance } from "class-transformer";
 
 @Injectable()
 export class JobService<JobData extends object> {
   constructor(
-    private readonly name: string,
-    private readonly pgBoss: PGBoss,
-  ) {}
+    public readonly name: string,
+    public readonly pgBoss: PGBoss,
+    private readonly transformer?: ClassConstructor<JobData>,
+  ) { }
+
+  private transformData(data: JobData): object {
+    if (this.transformer) {
+      if (data instanceof this.transformer) {
+        return instanceToPlain(data);
+      } else {
+        return instanceToPlain(plainToInstance(this.transformer, data));
+      }
+    }
+    return data;
+  }
 
   async send(
     data: JobData,
     options: PGBoss.SendOptions,
   ): Promise<string | null> {
-    return this.pgBoss.send(this.name, data, options);
+    return this.pgBoss.send(this.name, this.transformData(data), options);
   }
 
   async sendAfter(
@@ -29,7 +42,7 @@ export class JobService<JobData extends object> {
     date: Date | string | number,
   ): Promise<string | null> {
     // sendAfter has three overloads for all date variants we accept
-    return this.pgBoss.sendAfter(this.name, data, options, date as any);
+    return this.pgBoss.sendAfter(this.name, this.transformData(data), options, date as any);
   }
 
   async sendOnce(
@@ -37,14 +50,14 @@ export class JobService<JobData extends object> {
     options: PGBoss.SendOptions,
     key: string,
   ): Promise<string | null> {
-    return this.pgBoss.sendOnce(this.name, data, options, key);
+    return this.pgBoss.sendOnce(this.name, this.transformData(data), options, key);
   }
 
   async sendSingleton(
     data: JobData,
     options: PGBoss.SendOptions,
   ): Promise<string | null> {
-    return this.pgBoss.sendSingleton(this.name, data, options);
+    return this.pgBoss.sendSingleton(this.name, this.transformData(data), options);
   }
 
   async sendThrottled(
@@ -54,9 +67,9 @@ export class JobService<JobData extends object> {
     key?: string,
   ): Promise<string | null> {
     if (key != undefined) {
-      return this.pgBoss.sendThrottled(this.name, data, options, seconds, key);
+      return this.pgBoss.sendThrottled(this.name, this.transformData(data), options, seconds, key);
     }
-    return this.pgBoss.sendThrottled(this.name, data, options, seconds);
+    return this.pgBoss.sendThrottled(this.name, this.transformData(data), options, seconds);
   }
 
   async sendDebounced(
@@ -66,25 +79,30 @@ export class JobService<JobData extends object> {
     key?: string,
   ): Promise<string | null> {
     if (key != undefined) {
-      return this.pgBoss.sendDebounced(this.name, data, options, seconds, key);
+      return this.pgBoss.sendDebounced(this.name, this.transformData(data), options, seconds, key);
     }
-    return this.pgBoss.sendDebounced(this.name, data, options, seconds);
+    return this.pgBoss.sendDebounced(this.name, this.transformData(data), options, seconds);
   }
 
-  async insert(jobs: Omit<PGBoss.JobInsert<JobData>, "name">[]): Promise<any> {
-    const _jobs: PGBoss.JobInsert<JobData>[] = jobs.map((job) => ({
+  async insert(jobs: Omit<PGBoss.JobInsert<JobData>, "name">[]): Promise<string[] | null> {
+    const _jobs: PGBoss.JobInsert<object>[] = jobs.map((job) => ({
       ...job,
       name: this.name,
+      data: job.data && this.transformData(job.data),
     }));
-    return this.pgBoss.insert(_jobs);
+    const result: any = await this.pgBoss.insert(_jobs);
+    if (result && result.rowCount > 0) {
+      return result.rows.map((row: any) => row.id);
+    }
+    return null;
   }
 
   async schedule(cron: string, data: JobData, options: PGBoss.ScheduleOptions) {
-    return this.pgBoss.schedule(this.name, cron, data, options);
+    return this.pgBoss.schedule(this.name, cron, this.transformData(data), options);
   }
 
   async unschedule() {
-    this.pgBoss.unschedule(this.name);
+    return this.pgBoss.unschedule(this.name);
   }
 }
 
@@ -109,8 +127,8 @@ interface HandleDecorator<JobData extends object> {
     options?: Options,
   ): MethodDecorator<
     Options extends { batchSize: number }
-      ? WorkHandlerBatch<JobData>
-      : WorkHandler<JobData>
+    ? WorkHandlerBatch<JobData>
+    : WorkHandler<JobData>
   >;
 }
 
@@ -120,15 +138,16 @@ export interface Job<JobData extends object = any> {
   Handle: HandleDecorator<JobData>;
 }
 
-export const createJob = <JobData extends object>(
+export function createJob<JobData extends object>(
   name: string,
-): Job<JobData> => {
+  transformer?: ClassConstructor<JobData>,
+): Job<JobData> {
   const token = getJobToken(name);
 
   return {
     ServiceProvider: {
       provide: token,
-      useFactory: (pgBoss: PGBoss) => new JobService<JobData>(name, pgBoss),
+      useFactory: (pgBoss: PGBoss) => new JobService<JobData>(name, pgBoss, transformer),
       inject: [PGBoss],
     },
     Inject: () => Inject(token),
@@ -137,6 +156,7 @@ export const createJob = <JobData extends object>(
         token,
         jobName: name,
         workOptions: options,
+        transformer,
       }),
   };
-};
+}

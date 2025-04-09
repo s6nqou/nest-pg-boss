@@ -111,11 +111,11 @@ export class PGBossModule
     this.instance = this.moduleRef.get<PGBoss>(PGBoss);
 
     this.instance.on('error', (error) => {
-      this.logger.error({ message: error.message ?? error, err: error });
+      this.logger.error(error);
     });
 
     this.instance.on('monitor-states', (states) => {
-      this.logger.log({ message: 'Moniter states', states });
+      this.logger.log({ states }, 'Monitor states');
     });
   }
 

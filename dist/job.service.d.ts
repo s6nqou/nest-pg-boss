@@ -17,19 +17,13 @@ export declare class JobService<JobData extends object> {
     schedule(cron: string, data: JobData, options: PGBoss.ScheduleOptions): Promise<void>;
     unschedule(): Promise<void>;
 }
-export interface WorkHandler<ReqData> {
-    (job?: PGBoss.Job<ReqData>): Promise<void>;
-}
-export interface WorkHandlerBatch<ReqData> {
-    (jobs?: PGBoss.Job<ReqData>[]): Promise<void>;
-}
 interface MethodDecorator<PropertyType> {
     <Class>(target: Class, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<PropertyType>): TypedPropertyDescriptor<PropertyType>;
 }
 interface HandleDecorator<JobData extends object> {
     <Options extends PGBoss.WorkOptions>(options?: Options): MethodDecorator<Options extends {
         batchSize: number;
-    } ? WorkHandlerBatch<JobData> : WorkHandler<JobData>>;
+    } ? PGBoss.BatchWorkHandler<JobData> : PGBoss.WorkHandler<JobData>>;
 }
 export interface Job<JobData extends object = any> {
     ServiceProvider: FactoryProvider<JobService<JobData>>;

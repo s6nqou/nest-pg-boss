@@ -102,14 +102,6 @@ export class JobService<JobData extends object> {
   }
 }
 
-export interface WorkHandler<ReqData> {
-  (job?: PGBoss.Job<ReqData>): Promise<void>;
-}
-
-export interface WorkHandlerBatch<ReqData> {
-  (jobs?: PGBoss.Job<ReqData>[]): Promise<void>;
-}
-
 interface MethodDecorator<PropertyType> {
   <Class>(
     target: Class,
@@ -123,8 +115,8 @@ interface HandleDecorator<JobData extends object> {
     options?: Options,
   ): MethodDecorator<
     Options extends { batchSize: number }
-    ? WorkHandlerBatch<JobData>
-    : WorkHandler<JobData>
+    ? PGBoss.BatchWorkHandler<JobData>
+    : PGBoss.WorkHandler<JobData>
   >;
 }
 

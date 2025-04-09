@@ -13,7 +13,7 @@ export declare class JobService<JobData extends object> {
     sendSingleton(data: JobData, options: PGBoss.SendOptions): Promise<string | null>;
     sendThrottled(data: JobData, options: PGBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
     sendDebounced(data: JobData, options: PGBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
-    insert(jobs: Omit<PGBoss.JobInsert<JobData>, "name">[]): Promise<string[] | null>;
+    insert(jobs: Omit<PGBoss.JobInsert<JobData>, "name">[]): Promise<void>;
     schedule(cron: string, data: JobData, options: PGBoss.ScheduleOptions): Promise<void>;
     unschedule(): Promise<void>;
 }

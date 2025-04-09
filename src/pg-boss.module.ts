@@ -28,8 +28,7 @@ import {
 })
 export class PGBossModule
   extends ConfigurableModuleClass
-  implements OnModuleInit, OnApplicationBootstrap, OnModuleDestroy
-{
+  implements OnModuleInit, OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(this.constructor.name);
   private instance: PGBoss;
 
@@ -110,6 +109,14 @@ export class PGBossModule
 
   onModuleInit() {
     this.instance = this.moduleRef.get<PGBoss>(PGBoss);
+
+    this.instance.on('error', (error) => {
+      if (error instanceof Error) {
+        this.logger.error(error.message, error.stack);
+      } else {
+        this.logger.error(error);
+      }
+    });
   }
 
   async onApplicationBootstrap(): Promise<void> {

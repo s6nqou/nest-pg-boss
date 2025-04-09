@@ -80,6 +80,14 @@ let PGBossModule = class PGBossModule extends pg_boss_module_definition_1.Config
     }
     onModuleInit() {
         this.instance = this.moduleRef.get(PGBoss);
+        this.instance.on('error', (error) => {
+            if (error instanceof Error) {
+                this.logger.error(error.message, error.stack);
+            }
+            else {
+                this.logger.error(error);
+            }
+        });
     }
     async onApplicationBootstrap() {
         await this.setupWorkers();

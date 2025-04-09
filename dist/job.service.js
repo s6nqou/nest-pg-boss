@@ -65,11 +65,7 @@ let JobService = class JobService {
             name: this.name,
             data: job.data && this.transformData(job.data),
         }));
-        const result = await this.pgBoss.insert(_jobs);
-        if (result && result.rowCount > 0) {
-            return result.rows.map((row) => row.id);
-        }
-        return null;
+        return this.pgBoss.insert(_jobs);
     }
     async schedule(cron, data, options) {
         return this.pgBoss.schedule(this.name, cron, this.transformData(data), options);

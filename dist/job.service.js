@@ -8,10 +8,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createJob = exports.JobService = void 0;
 const common_1 = require("@nestjs/common");
-const pg_boss_1 = require("pg-boss");
+const pg_boss_1 = __importDefault(require("pg-boss"));
 const pg_boss_constants_1 = require("./pg-boss.constants");
 const utils_1 = require("./utils");
 const class_transformer_1 = require("class-transformer");

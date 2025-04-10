@@ -13,11 +13,14 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PgBoss = void 0;
 __exportStar(require("./interfaces"), exports);
 __exportStar(require("./pg-boss.module"), exports);
 __exportStar(require("./job.service"), exports);
-const pg_boss_1 = require("pg-boss");
+const pg_boss_1 = __importDefault(require("pg-boss"));
 exports.PgBoss = pg_boss_1.default;
 //# sourceMappingURL=index.js.map

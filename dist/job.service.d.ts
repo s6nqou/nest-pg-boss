@@ -1,29 +1,29 @@
 import { FactoryProvider } from "@nestjs/common";
-import * as PGBoss from "pg-boss";
+import PgBoss from "pg-boss";
 import { ClassConstructor } from "class-transformer";
 export declare class JobService<JobData extends object> {
     readonly name: string;
-    readonly pgBoss: PGBoss;
+    readonly pgBoss: PgBoss;
     private readonly transformer?;
-    constructor(name: string, pgBoss: PGBoss, transformer?: ClassConstructor<JobData> | undefined);
+    constructor(name: string, pgBoss: PgBoss, transformer?: ClassConstructor<JobData> | undefined);
     private transformData;
-    send(data: JobData, options: PGBoss.SendOptions): Promise<string | null>;
-    sendAfter(data: JobData, options: PGBoss.SendOptions, date: Date | string | number): Promise<string | null>;
-    sendOnce(data: JobData, options: PGBoss.SendOptions, key: string): Promise<string | null>;
-    sendSingleton(data: JobData, options: PGBoss.SendOptions): Promise<string | null>;
-    sendThrottled(data: JobData, options: PGBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
-    sendDebounced(data: JobData, options: PGBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
-    insert(jobs: Omit<PGBoss.JobInsert<JobData>, "name">[]): Promise<void>;
-    schedule(cron: string, data: JobData, options: PGBoss.ScheduleOptions): Promise<void>;
+    send(data: JobData, options: PgBoss.SendOptions): Promise<string | null>;
+    sendAfter(data: JobData, options: PgBoss.SendOptions, date: Date | string | number): Promise<string | null>;
+    sendOnce(data: JobData, options: PgBoss.SendOptions, key: string): Promise<string | null>;
+    sendSingleton(data: JobData, options: PgBoss.SendOptions): Promise<string | null>;
+    sendThrottled(data: JobData, options: PgBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
+    sendDebounced(data: JobData, options: PgBoss.SendOptions, seconds: number, key?: string): Promise<string | null>;
+    insert(jobs: Omit<PgBoss.JobInsert<JobData>, "name">[]): Promise<void>;
+    schedule(cron: string, data: JobData, options: PgBoss.ScheduleOptions): Promise<void>;
     unschedule(): Promise<void>;
 }
 interface MethodDecorator<PropertyType> {
     <Class>(target: Class, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<PropertyType>): TypedPropertyDescriptor<PropertyType>;
 }
 interface HandleDecorator<JobData extends object> {
-    <Options extends PGBoss.WorkOptions>(options?: Options): MethodDecorator<Options extends {
+    <Options extends PgBoss.WorkOptions>(options?: Options): MethodDecorator<Options extends {
         batchSize: number;
-    } ? PGBoss.BatchWorkHandler<JobData> : PGBoss.WorkHandler<JobData>>;
+    } ? PgBoss.BatchWorkHandler<JobData> : PgBoss.WorkHandler<JobData>>;
 }
 export interface Job<JobData extends object = any> {
     ServiceProvider: FactoryProvider<JobService<JobData>>;

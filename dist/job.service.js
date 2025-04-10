@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createJob = exports.JobService = void 0;
 const common_1 = require("@nestjs/common");
-const PGBoss = require("pg-boss");
+const pg_boss_1 = require("pg-boss");
 const pg_boss_constants_1 = require("./pg-boss.constants");
 const utils_1 = require("./utils");
 const class_transformer_1 = require("class-transformer");
@@ -77,7 +77,7 @@ let JobService = class JobService {
 exports.JobService = JobService;
 exports.JobService = JobService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [String, PGBoss, Object])
+    __metadata("design:paramtypes", [String, pg_boss_1.default, Object])
 ], JobService);
 function createJob(name, transformer) {
     const token = (0, utils_1.getJobToken)(name);
@@ -85,7 +85,7 @@ function createJob(name, transformer) {
         ServiceProvider: {
             provide: token,
             useFactory: (pgBoss) => new JobService(name, pgBoss, transformer),
-            inject: [PGBoss],
+            inject: [pg_boss_constants_1.PG_BOSS_TOKEN],
         },
         Inject: () => (0, common_1.Inject)(token),
         Handle: (options = {}) => (0, common_1.SetMetadata)(pg_boss_constants_1.PG_BOSS_JOB_METADATA, {

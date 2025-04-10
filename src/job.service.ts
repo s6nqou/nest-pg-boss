@@ -14,7 +14,7 @@ import { ClassConstructor, instanceToPlain, plainToInstance } from "class-transf
 export class JobService<JobData extends object> {
   constructor(
     public readonly name: string,
-    public readonly pgBoss: PgBoss,
+    private readonly pgBoss: PgBoss,
     private readonly transformer?: ClassConstructor<JobData>,
   ) { }
 

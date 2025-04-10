@@ -3,7 +3,7 @@ import PgBoss from "pg-boss";
 import { ClassConstructor } from "class-transformer";
 export declare class JobService<JobData extends object> {
     readonly name: string;
-    readonly pgBoss: PgBoss;
+    private readonly pgBoss;
     private readonly transformer?;
     constructor(name: string, pgBoss: PgBoss, transformer?: ClassConstructor<JobData> | undefined);
     private transformData;

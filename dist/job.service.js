@@ -76,6 +76,12 @@ let JobService = class JobService {
     async unschedule() {
         return this.pgBoss.unschedule(this.name);
     }
+    async fetch(batchSize, options) {
+        return this.pgBoss.fetch(this.name, batchSize, options);
+    }
+    async fetchCompleted(batchSize, options) {
+        return this.pgBoss.fetchCompleted(this.name, batchSize, options);
+    }
 };
 exports.JobService = JobService;
 exports.JobService = JobService = __decorate([

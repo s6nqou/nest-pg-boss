@@ -16,6 +16,8 @@ export declare class JobService<JobData extends object> {
     insert(jobs: Omit<PgBoss.JobInsert<JobData>, "name">[]): Promise<void>;
     schedule(cron: string, data: JobData, options: PgBoss.ScheduleOptions): Promise<void>;
     unschedule(): Promise<void>;
+    fetch(batchSize: number, options: PgBoss.FetchOptions): Promise<PgBoss.Job<JobData>[] | null>;
+    fetchCompleted(batchSize: number, options: PgBoss.FetchOptions): Promise<PgBoss.Job<JobData>[] | null>;
 }
 interface MethodDecorator<PropertyType> {
     <Class>(target: Class, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<PropertyType>): TypedPropertyDescriptor<PropertyType>;

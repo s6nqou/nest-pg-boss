@@ -100,6 +100,14 @@ export class JobService<JobData extends object> {
   async unschedule() {
     return this.pgBoss.unschedule(this.name);
   }
+
+  async fetch(batchSize: number, options: PgBoss.FetchOptions) {
+    return this.pgBoss.fetch<JobData>(this.name, batchSize, options);
+  }
+
+  async fetchCompleted(batchSize: number, options: PgBoss.FetchOptions) {
+    return this.pgBoss.fetchCompleted<JobData>(this.name, batchSize, options);
+  }
 }
 
 interface MethodDecorator<PropertyType> {

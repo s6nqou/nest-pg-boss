@@ -10,8 +10,6 @@ import {
 } from "@nestjs/common";
 import { MetadataScanner, ModuleRef } from "@nestjs/core";
 import PgBoss from "pg-boss";
-import { defer, lastValueFrom } from "rxjs";
-import { handleRetry } from "./utils";
 import { PGBossJobModule } from "./pg-boss-job.module";
 import { HandlerScannerService } from "./handler-scanner.service";
 import { PGBossModuleOptions } from "./interfaces/pg-boss-options.interface";
@@ -44,7 +42,7 @@ export class PGBossModule
   static forRoot(options: typeof OPTIONS_TYPE): DynamicModule {
     const instanceProvider = {
       provide: PG_BOSS_TOKEN,
-      useFactory: async () => await this.createInstanceFactory(options),
+      useFactory: () => new PgBoss(options),
     };
 
     const dynamicModule = super.forRoot(options);
@@ -63,12 +61,12 @@ export class PGBossModule
       provide: PG_BOSS_TOKEN,
       useFactory: async (pgBossModuleOptions: PGBossModuleOptions) => {
         if (options.application_name) {
-          return await this.createInstanceFactory({
+          return new PgBoss({
             ...pgBossModuleOptions,
             application_name: options.application_name,
           });
         }
-        return await this.createInstanceFactory(pgBossModuleOptions);
+        return new PgBoss(pgBossModuleOptions);
       },
       inject: [MODULE_OPTIONS_TOKEN],
     };
@@ -84,21 +82,6 @@ export class PGBossModule
     dynamicModule.exports.push(instanceProvider);
 
     return dynamicModule;
-  }
-
-  private static async createInstanceFactory(options: PGBossModuleOptions) {
-    const pgBoss = await lastValueFrom(
-      defer(async () => new PgBoss(options).start()).pipe(
-        handleRetry(
-          options.retryAttempts,
-          options.retryDelay,
-          options.verboseRetryLog,
-          options.toRetry,
-        ),
-      ),
-    );
-
-    return pgBoss;
   }
 
   static forJobs(jobs: Job[]): DynamicModule {
@@ -122,6 +105,15 @@ export class PGBossModule
   }
 
   async onApplicationBootstrap(): Promise<void> {
+    const options = this.moduleRef.get<PGBossModuleOptions>(MODULE_OPTIONS_TOKEN);
+    const enabled = options.enabled ?? true;
+
+    if (!enabled) {
+      return;
+    }
+
+    await this.instance.start();
+
     await this.setupWorkers();
   }
 

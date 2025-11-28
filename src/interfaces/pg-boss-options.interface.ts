@@ -4,6 +4,11 @@ import type { ConstructorOptions } from "pg-boss";
 
 export type PGBossModuleOptions = {
   /**
+   * If `false`, the pg-boss instance will not start.
+   * Default: true
+   */
+  enabled?: boolean;
+  /**
    * Number of times to retry connecting
    * Default: 10
    */

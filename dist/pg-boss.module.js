@@ -16,8 +16,6 @@ exports.InjectPgBoss = exports.PGBossModule = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const pg_boss_1 = __importDefault(require("pg-boss"));
-const rxjs_1 = require("rxjs");
-const utils_1 = require("./utils");
 const pg_boss_job_module_1 = require("./pg-boss-job.module");
 const handler_scanner_service_1 = require("./handler-scanner.service");
 const pg_boss_module_definition_1 = require("./pg-boss.module-definition");
@@ -35,7 +33,7 @@ let PGBossModule = class PGBossModule extends pg_boss_module_definition_1.Config
     static forRoot(options) {
         const instanceProvider = {
             provide: pg_boss_constants_1.PG_BOSS_TOKEN,
-            useFactory: async () => await this.createInstanceFactory(options),
+            useFactory: () => new pg_boss_1.default(options),
         };
         const dynamicModule = super.forRoot(options);
         if (!dynamicModule.providers) {
@@ -51,12 +49,12 @@ let PGBossModule = class PGBossModule extends pg_boss_module_definition_1.Config
             provide: pg_boss_constants_1.PG_BOSS_TOKEN,
             useFactory: async (pgBossModuleOptions) => {
                 if (options.application_name) {
-                    return await this.createInstanceFactory({
+                    return new pg_boss_1.default({
                         ...pgBossModuleOptions,
                         application_name: options.application_name,
                     });
                 }
-                return await this.createInstanceFactory(pgBossModuleOptions);
+                return new pg_boss_1.default(pgBossModuleOptions);
             },
             inject: [pg_boss_module_definition_1.MODULE_OPTIONS_TOKEN],
         };
@@ -70,10 +68,6 @@ let PGBossModule = class PGBossModule extends pg_boss_module_definition_1.Config
         }
         dynamicModule.exports.push(instanceProvider);
         return dynamicModule;
-    }
-    static async createInstanceFactory(options) {
-        const pgBoss = await (0, rxjs_1.lastValueFrom)((0, rxjs_1.defer)(async () => new pg_boss_1.default(options).start()).pipe((0, utils_1.handleRetry)(options.retryAttempts, options.retryDelay, options.verboseRetryLog, options.toRetry)));
-        return pgBoss;
     }
     static forJobs(jobs) {
         return {
@@ -92,6 +86,12 @@ let PGBossModule = class PGBossModule extends pg_boss_module_definition_1.Config
         });
     }
     async onApplicationBootstrap() {
+        const options = this.moduleRef.get(pg_boss_module_definition_1.MODULE_OPTIONS_TOKEN);
+        const enabled = options.enabled ?? true;
+        if (!enabled) {
+            return;
+        }
+        await this.instance.start();
         await this.setupWorkers();
     }
     async onModuleDestroy() {

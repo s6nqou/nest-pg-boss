@@ -11,7 +11,6 @@ export declare class PGBossModule extends ConfigurableModuleClass implements OnM
     constructor(moduleRef: ModuleRef, handlerScannerService: HandlerScannerService);
     static forRoot(options: typeof OPTIONS_TYPE): DynamicModule;
     static forRootAsync(options: ASYNC_OPTIONS_TYPE): DynamicModule;
-    private static createInstanceFactory;
     static forJobs(jobs: Job[]): DynamicModule;
     onModuleInit(): void;
     onApplicationBootstrap(): Promise<void>;

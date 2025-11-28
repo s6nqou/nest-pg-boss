@@ -1,5 +1,6 @@
 import { PGBossModuleOptions } from "./interfaces";
 declare const ConfigurableModuleClass: import("@nestjs/common").ConfigurableModuleCls<PGBossModuleOptions, "forRoot", "create", {}>, MODULE_OPTIONS_TOKEN: string | symbol, OPTIONS_TYPE: {
+    enabled?: boolean | undefined;
     retryAttempts?: number | undefined;
     retryDelay?: number | undefined;
     toRetry?: ((err: any) => boolean) | undefined;
